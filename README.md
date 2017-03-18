@@ -1,7 +1,7 @@
 This project was bootstrapped with
 [Create React App](https://github.com/facebookincubator/create-react-app).
 
-Dependencies: node, npm.
+Dependencies: react, lodash, node, npm, tachyon.css, semantic.ui.
 
 To get started:
 
