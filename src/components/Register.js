@@ -138,7 +138,7 @@ class Register extends Component {
     }
 
     comparison(number){
-    let remainder
+    let remainder= 0
     switch (true){
       case (number/20>=1 && this.pocket.twenty>0):
         let twenty = Math.floor(number/20)
@@ -148,15 +148,24 @@ class Register extends Component {
             this.pocket.twenty -= twenty
             this.pocket.request -= (twenty * 20)
             this.comparison(remainder)
-          } else {
+          }
+        else {
             this.setState({
                 request: this.pocket.request - (twenty * 20),
                 register_content: Object.assign({},this.pocket, {
                     twenty: this.state.register_content.twenty - twenty
-                })
-            })
+                }) })
           }
-        }else {
+        }
+        else if(this.pocket.twenty < twenty){
+          let value = twenty - this.pocket.twenty
+          this.pocket.request -=(this.pocket.twenty*20)
+          this.pocket.twenty = 0;
+          this.comparison(remainder + ((value)* 20))
+        }
+
+        else{
+          remainder+=20
           this.comparison(remainder)
       }
       break;
@@ -177,7 +186,16 @@ class Register extends Component {
                  })
              })
            }
-        }else {
+        }
+        else if(this.pocket.ten < ten){
+          let value = ten - this.pocket.ten
+          this.pocket.request -=(this.pocket.ten*10)
+          this.pocket.ten = 0;
+          this.comparison(remainder + ((value)* 10))
+        }
+
+        else {
+          remainder+=10
           this.comparison(remainder)
       }
       break;
@@ -197,7 +215,16 @@ class Register extends Component {
                  })
              })
            }
-        }else {
+        }
+        else if(this.pocket.five < five){
+          let value = five - this.pocket.five
+          this.pocket.request -=(this.pocket.five*5)
+          this.pocket.five = 0;
+          this.comparison(remainder + ((value)* 5))
+        }
+
+        else {
+          remainder+=5
           this.comparison(remainder)
       }
       break;
@@ -217,8 +244,13 @@ class Register extends Component {
                  })
              })
            }
-        }else {
-          remainder += 2
+        }    else if(this.pocket.two < two){
+              let value = two - this.pocket.two
+              this.pocket.request -=(this.pocket.two*2)
+              this.pocket.two = 0;
+              this.comparison(remainder + ((value)* 2))
+            }else {
+          remainder +=2
           this.comparison(remainder)
       }
       break;
