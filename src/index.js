@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Register from './src/components/Register';
+import Register from './components/Register';
 
 
 ReactDOM.render(
