@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import _ from 'lodash';
 import '../App.css';
 
 class Register extends Component {
@@ -9,11 +10,10 @@ class Register extends Component {
         this.fives = 0
         this.twos = 0
         this.ones = 0
-
+        this.pocket = {}
         this.state = {
             cashValues: false,
             cashOutput: false,
-            // changeInput: false,
             request: 0,
             register_content: {
                 twenty: 0,
@@ -34,8 +34,6 @@ class Register extends Component {
         return (this.state.register_content.twenty * 20) + (this.state.register_content.ten * 10) + (this.state.register_content.five * 5) + (this.state.register_content.two * 2) + (this.state.register_content.one * 1)
     }
 
-/* display matters */
-
     show(event) {
         var clicked_button = event.target.innerText
         switch (clicked_button) {
@@ -49,11 +47,6 @@ class Register extends Component {
                     cashOutput: !this.state.cashOutput
                 });
                 break;
-            // case "Get Change":
-            //     this.setState({
-            //         changeInput: !this.state.changeInput
-            //     });
-            //     break;
             default:
                 return this.state;
         }
@@ -138,160 +131,138 @@ class Register extends Component {
         if (this.state.request > this.total_in_regsiter()) {
             alert("Transaction Error, Please try again!")
         } else {
-            this.denominations(this.state.request)
+            this.pocket = _.extend({}, this.state.register_content);
+            this.pocket.request = this.state.request
+            this.comparison(this.pocket.request)
         }
     }
 
-    handleOneDollar(number){
-      number -= this.ones
-      this.setState({
-        request: this.state.request - (this.ones + this.twos*2 + this.fives*5 + this.tens*10 + this.twenties*20),
-        register_content: Object.assign({}, this.state.register_content, {
-              twenty: this.state.register_content.twenty - this.twenties,
-              ten: this.state.register_content.ten - this.tens,
-              five: this.state.register_content.five - this.fives,
-              two: this.state.register_content.two - this.twos,
-              one: this.state.register_content.one - this.ones
-          })})
-    }
-    handleTwoDollar(){
-      this.setState({
-        request: this.state.request - (this.twos*2 + this.fives*5 + this.tens*10 + this.twenties*20),
-        register_content: Object.assign({}, this.state.register_content, {
-              twenty: this.state.register_content.twenty - this.twenties,
-              ten: this.state.register_content.ten - this.tens,
-              five: this.state.register_content.five - this.fives,
-              two: this.state.register_content.two - this.twos
-          })})
-    }
-    handleFiveDollar(){
-      this.setState({
-        request: this.state.request - (this.fives*5 + this.tens*10 + this.twenties*20),
-        register_content: Object.assign({}, this.state.register_content, {
-              twenty: this.state.register_content.twenty - this.twenties,
-              ten: this.state.register_content.ten - this.tens,
-              five: this.state.register_content.five - this.fives
-          })})
-    }
-    handleTenDollar(){
-      this.setState({
-        request: this.state.request - (this.tens*10 + this.twenties*20),
-        register_content: Object.assign({}, this.state.register_content, {
-              twenty: this.state.register_content.twenty - this.twenties,
-              ten: this.state.register_content.ten - this.tens
-          })})
-    }
-    handleTwentyDollar(){
-      this.setState({
-          request: this.state.request - this.twenties*20,
-          register_content: Object.assign({}, this.state.register_content, {
-              twenty: this.state.register_content.twenty - this.twenties
+    comparison(number){
+    let remainder
+    switch (true){
+      case (number/20>=1 && this.pocket.twenty>0):
+        let twenty = Math.floor(number/20)
+         remainder = number % 20
+        if (this.pocket.twenty >= twenty){
+          if (remainder){
+            this.pocket.twenty -= twenty
+            this.pocket.request -= (twenty * 20)
+            this.comparison(remainder)
+          } else {
+            this.setState({
+                request: this.pocket.request - (twenty * 20),
+                register_content: Object.assign({},this.pocket, {
+                    twenty: this.state.register_content.twenty - twenty
+                })
+            })
+          }
+        }else {
+          this.comparison(remainder)
+      }
+      break;
+      case (number/10>=1 && this.state.register_content.ten>0):
+        let ten = Math.floor(number/10)
+         remainder = number % 10
+         if (this.state.register_content.ten >= ten){
+           if (remainder){
+             this.pocket.ten -= ten
+             this.pocket.request -= (ten * 10)
+             this.comparison(remainder)
+           }
+           else {
+             this.setState({
+                 request: this.pocket.request - (ten * 10),
+                 register_content: Object.assign({}, this.pocket, {
+                     ten: this.state.register_content.ten - ten
+                 })
+             })
+           }
+        }else {
+          this.comparison(remainder)
+      }
+      break;
+      case (number/5>=1 && this.state.register_content.five>0):
+        let five = Math.floor(number/5)
+         remainder = number% 5
+         if (this.state.register_content.five >= five){
+           if (remainder){
+             this.pocket.five -= five
+             this.pocket.request -= (five * 5)
+             this.comparison(remainder)
+           } else {
+             this.setState({
+                 request: this.pocket.request - (five * 5),
+                 register_content: Object.assign({}, this.pocket, {
+                     five: this.state.register_content.five - five
+                 })
+             })
+           }
+        }else {
+          this.comparison(remainder)
+      }
+      break;
+      case (number/2>=1 && this.state.register_content.two>0):
+        let two = Math.floor(number/2)
+         remainder = number% 2
+         if (this.state.register_content.two >= two){
+           if (remainder){
+             this.pocket.two -= two
+             this.pocket.request -= (two * 2)
+             this.comparison(remainder)
+           } else {
+             this.setState({
+                 request: this.pocket.request - (two * 2),
+                 register_content: Object.assign({}, this.pocket, {
+                     two: this.state.register_content.two - two
+                 })
+             })
+           }
+        }else {
+          remainder += 2
+          this.comparison(remainder)
+      }
+      break;
+
+      case (number> 0 && this.state.register_content.one>0):
+        if (this.state.register_content.one >= number){
+          this.setState({
+              request: this.pocket.request - (number),
+              register_content: Object.assign({}, this.pocket, {
+                  one: this.state.register_content.one - number
+              })
           })
-      })
+      }
+      break;
+      default:
+      alert ("Transaction not possible!!")
+      }
     }
 
-    denominations(number) {
-        let required_twenties = parseInt(number / 20, 10)
-        if (required_twenties >= this.state.register_content.twenty) {
-            this.twenties = this.state.register_content.twenty
-            number -= this.twenties * 20;
-          let required_tens = parseInt(number / 10, 10)
-            if (number !== 0 && required_tens >= this.state.register_content.ten) {
-                this.tens = this.state.register_content.ten
-                number -= this.tens * 10
-              let required_fives = parseInt(number / 5, 10)
-                if (number !== 0 && required_fives >= this.state.register_content.five) {
-                    this.fives = this.state.register_content.five
-                    number -= this.fives * 5
-                  let required_twos = parseInt(number / 2, 10)
-                    if (number !== 0 && required_twos >= this.state.register_content.two) {
-                        this.twos = this.state.register_content.two
-                        number -= this.twos * 2
-                        if (number !== 0 && number >= this.state.register_content.one) {
-                            this.ones = this.state.register_content.one
-                            this.handleOneDollar()
-                        }else if (number !== 0 && number < this.state.register_content.one) {
-                              this.ones = number
-                              this.handleOneDollar()
-                        }else{
-                          this.handleTwoDollar()
-                        }
-                    }else if (number !== 0 && required_twos < this.state.register_content.two) {
-                        this.twos = required_twos
-                        number -= this.twos * 2
-                        this.handleTwoDollar()
-                    }else {
-                      this.handleFiveDollar()
-                    }
-                }else if (number !== 0 && required_fives < this.state.register_content.five) {
-                    this.fives = required_fives
-                    number -= this.fives * 5
-                    this.handleFiveDollar()
-                }else {
-                    this.handleTenDollar()
-                }
-            }else if (number !== 0 && required_tens < this.state.register_content.ten) {
-                this.tens = required_tens
-                number -= this.tens * 10
-                this.handleTenDollar()
-            }else {
-              this.handleTwentyDollar()
-            }
-        }else if (number !== 0 && required_twenties < this.state.register_content.twenty) {
-            this.twenties = required_twenties
-            number -= this.twenties * 20;
-            this.handleTwentyDollar()
-        }
-
-    }
-
-    //   if (number - 20 >= 0 && this.state.register_content.twenty > 0){
-    //     this.setState({request:this.state.request - 20,register_content: Object.assign({}, this.state.register_content, {twenty: this.state.register_content.twenty - 1,})
-    //   })
-    //   }
-    //    else if (number - 10 >= 0 && this.state.register_content.ten > 0){
-    //             this.setState({request:this.state.request - 10,register_content: Object.assign({}, this.state.register_content, {ten: this.state.register_content.ten - 1,})
-    //     })
-    //   }
-    //  else if (number - 5 >= 0 && this.state.register_content.five > 0){
-    //             this.setState({request:this.state.request - 5,register_content: Object.assign({}, this.state.register_content, {five: this.state.register_content.five - 1,})
-    //     })
-    //   }
-    //  else if (number - 2 >= 0 && this.state.register_content.two > 0){
-    //             this.setState({request:this.state.request - 2,register_content: Object.assign({}, this.state.register_content, {two: this.state.register_content.two - 1,})
-    //     })
-    //   }
-    //
-    //    else if (number - 1 >= 0 && this.state.register_content.one > 0){
-    //             this.setState({request:this.state.request - 1,register_content: Object.assign({}, this.state.register_content, {one: this.state.register_content.one - 1,})
-    //     })
-    //   }
-    //   if (this.state.request > 0){
-    //     debugger
-    //   this.denominations(this.state.request)}
 
     render() {
         return (
-            <div className="center">
-              <h2>!Cash Register!</h2>
-              <p>Total in register: ${this.total_in_regsiter()}</p>
-              <p> Current available denominations: </p>
-              <div className="dt center mw7">
-                <p className="pa3 ph4-l dtc">20 X {this.state.register_content.twenty}</p>
-                <p className="pa3 ph4-l dtc">10 X {this.state.register_content.ten}</p>
-                <p className="pa3 ph4-l dtc">5  X {this.state.register_content.five}</p>
-                <p className="pa3 ph4-l dtc">2  X {this.state.register_content.two}</p>
-                <p className="pa3 ph4-l dtc">1  X {this.state.register_content.one}</p>
+            <div className="center mw7">
+              <div className="bg-black-90">
+                <h2 className="white-90">!Cash Register!</h2>
+                <p className="white-90">Total in register: ${this.total_in_regsiter()}</p>
+                <p className="white-90" > Current available denominations: </p>
+              </div>
+              <div className="di center mw7 bg-white-70">
+                <p className="pa3 ph4-l dtc">20 x {this.state.register_content.twenty}</p>
+                <p className="pa3 ph4-l dtc">10 x {this.state.register_content.ten}</p>
+                <p className="pa3 ph4-l dtc">5  x {this.state.register_content.five}</p>
+                <p className="pa3 ph4-l dtc">2  x {this.state.register_content.two}</p>
+                <p className="pa3 ph4-l dtc">1  x {this.state.register_content.one}</p>
               </div>
 
               <div className="App-header">
                 <div>
-                  <button onClick={this.show}>Add Cash</button>
+                  <button onClick={this.show} className="ui positive button">Add Cash</button>
                   {this.state.cashValues
                     ? <CashValue add_value={this.add_value} subtract_value={this.subtract_value}/>
                   : null}</div>
                 <div>
-                  <button onClick={this.show}>Get Change</button>
+                  <button onClick={this.show} className="ui negative button">Get Change</button>
                   {this.state.cashOutput
                     ? <CashOutput remove_value={this.remove_value} handleChange={this.handleChange} request={this.state.request}/>
                   : null}
@@ -299,12 +270,6 @@ class Register extends Component {
                     ? <Failure/>
                   : null}
                 </div>
-                {/* <div>
-                  <button onClick={this.show}>Get Change</button>
-                  {this.state.changeInput
-                    ? <ChangeInput/>
-                  : null}
-                </div> */}
               </div>
             </div>
         );
@@ -314,31 +279,31 @@ class Register extends Component {
 class CashValue extends Component {
     render() {
         return (
-            <div  className="dt center mw7">
+            <div  className="dt center mw7 bg-white-70">
               <div className="pa3 ph4-l dtc">
-                <button className="bg-green" onClick={this.props.add_value}>+</button>
+                <button className="ui circular positive icon button" onClick={this.props.add_value}>+</button>
                 20
-                <button className="bg-red" onClick={this.props.subtract_value}>-</button>
+                <button className="ui circular negative icon button" onClick={this.props.subtract_value}>-</button>
               </div>
               <div className="pa3 ph4-l dtc">
-                <button className="bg-green" onClick={this.props.add_value}>+</button>
+                <button className="ui circular positive icon button" onClick={this.props.add_value}>+</button>
                 10
-                <button className="bg-red" onClick={this.props.subtract_value}>-</button>
+                <button className="ui circular negative icon button" onClick={this.props.subtract_value}>-</button>
               </div>
               <div className="pa3 ph4-l dtc">
-                <button className="bg-green" onClick={this.props.add_value}>+</button>
+                <button className="ui circular positive icon button" onClick={this.props.add_value}>+</button>
                 5
-                <button className="bg-red" onClick={this.props.subtract_value}>-</button>
+                <button className="ui circular negative icon button" onClick={this.props.subtract_value}>-</button>
               </div>
               <div className="pa3 ph4-l dtc">
-                <button className="bg-green" onClick={this.props.add_value}>+</button>
+                <button className="ui circular positive icon button" onClick={this.props.add_value}>+</button>
                 2
-                <button className="bg-red" onClick={this.props.subtract_value}>-</button>
+                <button className="ui circular negative icon button" onClick={this.props.subtract_value}>-</button>
               </div>
               <div className="pa3 ph4-l dtc">
-                <button className="bg-green" onClick={this.props.add_value}>+</button>
+                <button className="ui circular positive icon button" onClick={this.props.add_value}>+</button>
                 1
-                <button className="bg-red" onClick={this.props.subtract_value}>-</button>
+                <button className="ui circular negative icon button" onClick={this.props.subtract_value}>-</button>
                 </div>
             </div>
         );
@@ -353,9 +318,9 @@ class CashOutput extends Component {
     render() {
         return (
             <div>
-                <form onSubmit={this.props.remove_value}>
-                    <input type="number" min="1" step="1" onChange={this.props.handleChange} value={this.props.request}/>
-                    <input type="submit"/>
+              <form onSubmit={this.props.remove_value}>
+                <input type="number" min="1" step="1" onChange={this.props.handleChange} value={this.props.request} className="ui form"/>
+                <input type="submit" className="ui button"/>
                 </form>
             </div>
         );
@@ -366,24 +331,11 @@ CashOutput.propTypes = {
     handleChange: React.PropTypes.func
 };
 
-// class ChangeInput extends Component {
-//     render() {
-//         return (
-//             <div>
-//                 <form onSubmit>
-//                     <input type="number"/>
-//                     <input type="submit"/>
-//                 </form>
-//             </div>
-//         );
-//     }
-// };
-
 class Failure extends Component {
     render() {
         return (
             <div>
-                Transaction NOT possible not enough cash in Register
+              Transaction NOT possible not enough cash in Register
             </div>
         )
     }
