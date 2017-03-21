@@ -28,6 +28,10 @@ class Register extends Component {
         this.subtract_value = this.subtract_value.bind(this)
         this.remove_value = this.remove_value.bind(this)
         this.handleChange = this.handleChange.bind(this)
+        this.updateScreen = this.updateScreen.bind(this)
+        this.handleOne = this.handleOne.bind(this)
+        this.handleTwo = this.handleTwo.bind(this)
+        this.handleFive = this.handleFive.bind(this)
     }
 
     total_in_regsiter() {
@@ -137,163 +141,7 @@ class Register extends Component {
         }
     }
 
-
-    // Recursively try every number.
-    // If the first one fails.
-    // 20, 10, 5, 2, 1
-    // 10, 5, 2, 1
-    // 5 , 2 , 1
-    // 2 , 1
-    // Then fail it
-    // That should cover all edge cases.
-
-    // edge cases to consider. not enough 1s should throw an error currently does nothing!
-    //// the case when you can combine $2s and $5s for 11s WHEN YOU DONT HAVE ANY $1s but you have a $10.
-
-    comparison(number){
-    let remainder= 0
-    switch (true){
-      case (number/20>=1 && this.pocket.twenty>0):
-        let twenty = Math.floor(number/20)
-         remainder = number % 20
-        if (this.pocket.twenty >= twenty){
-          if (remainder){
-            this.pocket.twenty -= twenty
-            this.pocket.request -= (twenty * 20)
-            this.comparison(remainder)
-          }
-        else {
-            this.setState({
-                request: this.pocket.request - (twenty * 20),
-                register_content: Object.assign({},this.pocket, {
-                    twenty: this.state.register_content.twenty - twenty
-                }) })
-          }
-        }
-        else if(this.pocket.twenty < twenty){
-          let value = twenty - this.pocket.twenty
-          this.pocket.request -=(this.pocket.twenty*20)
-          this.pocket.twenty = 0;
-          this.comparison(remainder + ((value)* 20))
-        }
-
-        else{
-          remainder+=20
-          this.comparison(remainder)
-      }
-      break;
-      case (number/10>=1 && this.pocket.ten>0):
-        let ten = Math.floor(number/10)
-         remainder = number % 10
-         if (this.pocket.ten >= ten){
-           if (remainder===1 && this.pocket.five>=1 && this.pocket.two >=3 && this.pocket.one === 0){
-             this.pocket.two -= 3
-             this.pocket.five-= 1
-             this.pocket.request -= 11
-            this.comparison(this.pocket.request)
-           }
-           else if (remainder){
-             this.pocket.ten -= ten
-             this.pocket.request -= (ten * 10)
-             this.comparison(remainder)
-           }
-           else {
-             this.setState({
-                 request: this.pocket.request - (ten * 10),
-                 register_content: Object.assign({}, this.pocket, {
-                     ten: this.pocket.ten - ten
-                 })
-             })
-           }
-        }
-        else if(this.pocket.ten < ten){
-          let value = ten - this.pocket.ten
-          this.pocket.request -=(this.pocket.ten*10)
-          this.pocket.ten = 0;
-          this.comparison(remainder + ((value)* 10))
-        }
-
-        else {
-          remainder+=10
-          this.comparison(remainder)
-      }
-      break;
-      case (number/5>=1 && this.pocket.five>0):
-        let five = Math.floor(number/5)
-         remainder = number% 5
-         if (this.pocket.five >= five){
-           if (remainder && number%2 === 0 && this.pocket.two >= number/2 && this.pocket.one===0){
-             this.pocket.two -= number/2
-             this.pocket.request -= (number/2 * 2)
-             this.setState({
-                 request: this.pocket.request,
-                 register_content: Object.assign({}, this.pocket, {
-                     two: this.pocket.two
-                 })
-             })
-           } else if (remainder){
-             this.pocket.five -= five
-             this.pocket.request -= (five * 5)
-             this.comparison(remainder)
-           } else {
-             this.setState({
-                 request: this.pocket.request - (five * 5),
-                 register_content: Object.assign({}, this.pocket, {
-                     five: this.pocket.five - five
-                 })
-             })
-           }
-        }
-        else if(this.pocket.five < five){
-          let value = five - this.pocket.five
-          this.pocket.request -=(this.pocket.five*5)
-          this.pocket.five = 0;
-          this.comparison(remainder + ((value)* 5))
-        }
-
-        else {
-          remainder+=5
-          this.comparison(remainder)
-      }
-      break;
-      case (number/2>=1 && this.pocket.two>0):
-        let two = Math.floor(number/2)
-         remainder = number% 2
-         if (this.pocket.two >= two){
-           if (remainder){
-             this.pocket.two -= two
-             this.pocket.request -= (two * 2)
-             this.comparison(remainder)
-           } else {
-             this.setState({
-                 request: this.pocket.request - (two * 2),
-                 register_content: Object.assign({}, this.pocket, {
-                     two: this.pocket.two - two
-                 })
-             })
-           }
-        }    else if(this.pocket.two < two){
-              let value = two - this.pocket.two
-              this.pocket.request -=(this.pocket.two*2)
-              this.pocket.two = 0;
-              this.comparison(remainder + ((value)* 2))
-            }else {
-          remainder +=2
-          this.comparison(remainder)
-      }
-      break;
-
-      case (number> 0 && this.pocket.one>0):
-        if (this.pocket.one >= number){
-          this.setState({
-              request: this.pocket.request - (number),
-              register_content: Object.assign({}, this.pocket, {
-                  one: this.pocket.one - number
-              })
-          })
-      }else {alert("Transaction can not be completed")}
-      break;
-      case(number===0):
+    updateScreen(){
       if(this.pocket.request===0){
         this.setState({
           request:this.pocket.request,
@@ -303,11 +151,176 @@ class Register extends Component {
           five: this.pocket.five,
           ten: this.pocket.ten,
           twenty: this.pocket.twenty
-        })})
+          })
+        })
       }
+    }
+    handleOne(number){
+      if (this.pocket.one >= number){
+            this.pocket.request -= number
+            this.pocket.one -= number
+            this.comparison(this.pocket.request)
+      }else {
+        alert("Transaction can not be completed")
+      }
+    }
+    handleTwo(number, remainder){
+      let two = Math.floor(number/2)
+       remainder = number % 2
+       if (this.pocket.two >= two){
+         if (remainder){
+           this.pocket.two -= two
+           this.pocket.request -= (two * 2)
+           this.comparison(remainder)
+         } else {
+               this.pocket.request -= (two * 2)
+               this.pocket.two -= two
+               this.comparison(this.pocket.request)
+         }
+      }    else if(this.pocket.two < two){
+            let value = two - this.pocket.two
+            this.pocket.request -=(this.pocket.two*2)
+            this.pocket.two = 0;
+            this.comparison(remainder + ((value)* 2))
+          }else {
+        remainder +=2
+        this.comparison(remainder)
+      }
+    }
+    handleFive(number, remainder){
+      let five = Math.floor(number/5)
+       remainder = number % 5
+       if (this.pocket.five >= five){
+         if (remainder && number%2 === 0 && this.pocket.two >= number/2 && this.pocket.one === 0){
+           this.handleTwo(number)
+         } else if (remainder){
+           this.pocket.five -= five
+           this.pocket.request -= (five * 5)
+           this.comparison(remainder)
+         } else {
+               this.pocket.request -= (five * 5)
+               this.pocket.five -= five
+               this.comparison(this.pocket.request)
+         }
+      }
+      else if(this.pocket.five < five){
+        let value = five - this.pocket.five
+        this.pocket.request -=(this.pocket.five*5)
+        this.pocket.five = 0;
+        this.comparison(remainder + ((value)* 5))
+      }
+
+      else {
+        remainder+=5
+        this.comparison(remainder)
+      }
+    }
+    handleTen(number,remainder){
+      let ten = Math.floor(number/10)
+       remainder = number % 10
+       if (this.pocket.ten >= ten){
+         if (remainder===1 && this.pocket.five>=1 && this.pocket.two >=3 && this.pocket.one === 0){
+          this.handleFive(number)
+          this.comparison(this.pocket.request)
+         }
+         else if (remainder){
+           this.pocket.ten -= ten
+           this.pocket.request -= (ten * 10)
+           this.comparison(remainder)
+         }
+         else {
+           this.pocket.request -= (ten * 10)
+           this.pocket.ten -= ten
+           this.comparison(this.pocket.request)
+         }
+      }
+      else if(this.pocket.ten < ten){
+        let value = ten - this.pocket.ten
+        this.pocket.request -= (this.pocket.ten*10)
+        this.pocket.ten = 0;
+        this.comparison(remainder + ((value)* 10))
+      }
+
+      else {
+        remainder+=10
+        this.comparison(remainder)
+      }
+    }
+    handleTwenty(number,remainder){
+      remainder = number % 20
+      let twenty = Math.floor(number/20)
+      if (this.pocket.twenty >= twenty){
+        if (remainder===1 && this.pocket.ten >=1 && this.pocket.five>=1 && this.pocket.two >=3 && this.pocket.one === 0){
+          // this.pocket.ten -=1
+          // this.pocket.two -= 3
+          // this.pocket.five-= 1
+          // this.pocket.request -= 21
+         this.handleTen(number)
+         this.comparison(this.pocket.request)
+        }
+        else if (remainder){
+          this.pocket.twenty -= twenty
+          this.pocket.request -= (twenty * 20)
+          this.comparison(remainder)
+        }else {
+       this.pocket.request -= (twenty * 20)
+       this.pocket.twenty -= twenty
+       this.comparison(this.pocket.request)
+        }
+      }
+      else if(this.pocket.twenty < twenty){
+        let value = twenty - this.pocket.twenty
+        this.pocket.request -=(this.pocket.twenty*20)
+        this.pocket.twenty = 0;
+        this.comparison(remainder + ((value)* 20))
+      }
+
+      else{
+        remainder+=20
+        this.comparison(remainder)
+      }
+    }
+    // Recursively try every number.
+    // If the first one fails.
+    // 20, 10, 5, 2, 1
+    // 10, 5, 2, 1
+    // 5 , 2 , 1
+    // 2 , 1
+    // Then fail it
+    // That should cover all edge cases.
+
+    //or have a counter in  default that calls through all possible recursive calls, then fails.
+
+
+    comparison(number){
+    let remainder= 0
+    switch (true){
+      case (number/20>=1 && this.pocket.twenty>0):
+        this.handleTwenty(number,remainder)
       break;
+
+      case (number/10>=1 && this.pocket.ten>0):
+        this.handleTen(number,remainder)
+      break;
+
+      case (number/5>=1 && this.pocket.five>0):
+        this.handleFive(number,remainder)
+      break;
+
+      case (number/2>=1 && this.pocket.two>0):
+        this.handleTwo(number,remainder)
+      break;
+
+      case (number> 0 && this.pocket.one>0):
+        this.handleOne(number)
+      break;
+
+      case(number===0):
+        this.updateScreen()
+      break;
+
       default:
-      alert ("Transaction not possible!!")
+      alert ("Transaction cannot be completed!!")
       }
     }
 
@@ -321,11 +334,11 @@ class Register extends Component {
                 <p className="white-90" > Current available denominations: </p>
               </div>
               <div className="di center mw7 bg-white-70">
-                <p className="pa3 ph4-l dtc">20 x {this.state.register_content.twenty}</p>
-                <p className="pa3 ph4-l dtc">10 x {this.state.register_content.ten}</p>
-                <p className="pa3 ph4-l dtc">5  x {this.state.register_content.five}</p>
-                <p className="pa3 ph4-l dtc">2  x {this.state.register_content.two}</p>
-                <p className="pa3 ph4-l dtc">1  x {this.state.register_content.one}</p>
+                <p className="pa3 ph4-l dtc">$20 x {this.state.register_content.twenty}</p>
+                <p className="pa3 ph4-l dtc">$10 x {this.state.register_content.ten}</p>
+                <p className="pa3 ph4-l dtc">$5  x {this.state.register_content.five}</p>
+                <p className="pa3 ph4-l dtc">$2  x {this.state.register_content.two}</p>
+                <p className="pa3 ph4-l dtc">$1  x {this.state.register_content.one}</p>
               </div>
 
               <div className="App-header">
@@ -408,7 +421,8 @@ class Failure extends Component {
     render() {
         return (
             <div className="bg-white-70">
-              Transaction NOT possible not enough cash in Register
+              Maximum register value exceeded.<br/>
+              Transaction NOT possible.
             </div>
         )
     }
