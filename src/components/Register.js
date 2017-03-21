@@ -137,6 +137,19 @@ class Register extends Component {
         }
     }
 
+
+    // Recursively try every number.
+    // If the first one fails.
+    // 20, 10, 5, 2, 1
+    // 10, 5, 2, 1
+    // 5 , 2 , 1
+    // 2 , 1
+    // Then fail it
+    // That should cover all edge cases.
+
+    // edge cases to consider. not enough 1s should throw an error currently does nothing!
+    //// the case when you can combine $2s and $5s for 11s WHEN YOU DONT HAVE ANY $1s but you have a $10.
+
     comparison(number){
     let remainder= 0
     switch (true){
@@ -169,11 +182,17 @@ class Register extends Component {
           this.comparison(remainder)
       }
       break;
-      case (number/10>=1 && this.state.register_content.ten>0):
+      case (number/10>=1 && this.pocket.ten>0):
         let ten = Math.floor(number/10)
          remainder = number % 10
-         if (this.state.register_content.ten >= ten){
-           if (remainder){
+         if (this.pocket.ten >= ten){
+           if (remainder===1 && this.pocket.five>=1 && this.pocket.two >=3 && this.pocket.one === 0){
+             this.pocket.two -= 3
+             this.pocket.five-= 1
+             this.pocket.request -= 11
+            this.comparison(this.pocket.request)
+           }
+           else if (remainder){
              this.pocket.ten -= ten
              this.pocket.request -= (ten * 10)
              this.comparison(remainder)
@@ -182,7 +201,7 @@ class Register extends Component {
              this.setState({
                  request: this.pocket.request - (ten * 10),
                  register_content: Object.assign({}, this.pocket, {
-                     ten: this.state.register_content.ten - ten
+                     ten: this.pocket.ten - ten
                  })
              })
            }
@@ -199,11 +218,20 @@ class Register extends Component {
           this.comparison(remainder)
       }
       break;
-      case (number/5>=1 && this.state.register_content.five>0):
+      case (number/5>=1 && this.pocket.five>0):
         let five = Math.floor(number/5)
          remainder = number% 5
-         if (this.state.register_content.five >= five){
-           if (remainder){
+         if (this.pocket.five >= five){
+           if (remainder && number%2 === 0 && this.pocket.two >= number/2 && this.pocket.one===0){
+             this.pocket.two -= number/2
+             this.pocket.request -= (number/2 * 2)
+             this.setState({
+                 request: this.pocket.request,
+                 register_content: Object.assign({}, this.pocket, {
+                     two: this.pocket.two
+                 })
+             })
+           } else if (remainder){
              this.pocket.five -= five
              this.pocket.request -= (five * 5)
              this.comparison(remainder)
@@ -211,7 +239,7 @@ class Register extends Component {
              this.setState({
                  request: this.pocket.request - (five * 5),
                  register_content: Object.assign({}, this.pocket, {
-                     five: this.state.register_content.five - five
+                     five: this.pocket.five - five
                  })
              })
            }
@@ -228,10 +256,10 @@ class Register extends Component {
           this.comparison(remainder)
       }
       break;
-      case (number/2>=1 && this.state.register_content.two>0):
+      case (number/2>=1 && this.pocket.two>0):
         let two = Math.floor(number/2)
          remainder = number% 2
-         if (this.state.register_content.two >= two){
+         if (this.pocket.two >= two){
            if (remainder){
              this.pocket.two -= two
              this.pocket.request -= (two * 2)
@@ -240,7 +268,7 @@ class Register extends Component {
              this.setState({
                  request: this.pocket.request - (two * 2),
                  register_content: Object.assign({}, this.pocket, {
-                     two: this.state.register_content.two - two
+                     two: this.pocket.two - two
                  })
              })
            }
@@ -255,14 +283,27 @@ class Register extends Component {
       }
       break;
 
-      case (number> 0 && this.state.register_content.one>0):
-        if (this.state.register_content.one >= number){
+      case (number> 0 && this.pocket.one>0):
+        if (this.pocket.one >= number){
           this.setState({
               request: this.pocket.request - (number),
               register_content: Object.assign({}, this.pocket, {
-                  one: this.state.register_content.one - number
+                  one: this.pocket.one - number
               })
           })
+      }else {alert("Transaction can not be completed")}
+      break;
+      case(number===0):
+      if(this.pocket.request===0){
+        this.setState({
+          request:this.pocket.request,
+          register_content: Object.assign({}, this.pocket,{
+          one: this.pocket.one,
+          two: this.pocket.two,
+          five: this.pocket.five,
+          ten: this.pocket.ten,
+          twenty: this.pocket.twenty
+        })})
       }
       break;
       default:
@@ -366,7 +407,7 @@ CashOutput.propTypes = {
 class Failure extends Component {
     render() {
         return (
-            <div>
+            <div className="bg-white-70">
               Transaction NOT possible not enough cash in Register
             </div>
         )
