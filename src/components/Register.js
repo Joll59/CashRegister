@@ -280,6 +280,8 @@ class Register extends Component {
         this.comparison(remainder)
       }
     }
+
+    
     // Recursively try every number.
     // If the first one fails.
     // 20, 10, 5, 2, 1
